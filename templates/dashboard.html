@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket Bot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-running { background: #10b981; }
+        .status-stopped { background: #ef4444; }
+        .status-initializing { background: #f59e0b; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .metric-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .metric-value.positive {
+            color: #10b981;
+        }
+
+        .metric-value.negative {
+            color: #ef4444;
+        }
+
+        .big-metric {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .big-metric-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .big-metric-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .trade-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .trade-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trade-win {
+            border-left: 3px solid #10b981;
+        }
+
+        .trade-loss {
+            border-left: 3px solid #ef4444;
+        }
+
+        .position-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .position-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .error-item {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .error-time {
+            opacity: 0.6;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.6;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .last-update {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.6;
+            font-size: 0.85rem;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Polymarket Bot Monitor</h1>
+            <div class="status-badge" id="statusBadge">Connecting...</div>
+        </header>
+
+        <div class="grid">
+            <!-- Performance Card -->
+            <div class="card">
+                <h2>📊 Performance</h2>
+                <div class="big-metric">
+                    <div class="big-metric-label">Net P&L</div>
+                    <div class="big-metric-value" id="netProfit">$0.00</div>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Win Rate</span>
+                    <span class="metric-value" id="winRate">0%</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Trades</span>
+                    <span class="metric-value" id="totalTrades">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Uptime</span>
+                    <span class="metric-value" id="uptime">0m</span>
+                </div>
+            </div>
+
+            <!-- Current Market Card -->
+            <div class="card">
+                <h2>📈 Current Market</h2>
+                <div id="currentMarket" class="loading pulse">
+                    Waiting for market data...
+                </div>
+            </div>
+
+            <!-- Current Spread Card -->
+            <div class="card">
+                <h2>💰 Current Spread</h2>
+                <div id="currentSpread" class="loading pulse">
+                    Waiting for spread data...
+                </div>
+            </div>
+        </div>
+
+        <!-- Open Positions -->
+        <div class="card">
+            <h2>🎯 Open Positions (<span id="positionCount">0</span>)</h2>
+            <div id="openPositions" class="loading">
+                No open positions
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="card">
+            <h2>📝 Recent Trades</h2>
+            <div id="recentTrades" class="trade-list loading">
+                No trades yet
+            </div>
+        </div>
+
+        <!-- Errors -->
+        <div class="card">
+            <h2>⚠️ Recent Errors</h2>
+            <div id="recentErrors" class="loading">
+                No errors
+            </div>
+        </div>
+
+        <div class="last-update">
+            Last updated: <span id="lastUpdate">Never</span>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh dashboard data
+        let refreshInterval;
+
+        function formatCurrency(value) {
+            const num = parseFloat(value);
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
+        }
+
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            }
+            return `${minutes}m`;
+        }
+
+        function formatTimestamp(isoString) {
+            if (!isoString) return 'Unknown';
+            const date = new Date(isoString);
+            return date.toLocaleTimeString();
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                updateDashboard(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function updateDashboard(data) {
+            // Update status badge
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = data.status || 'Unknown';
+            statusBadge.className = 'status-badge status-' + (data.status || 'stopped');
+
+            // Update performance metrics
+            const perf = data.performance || {};
+            const netProfit = document.getElementById('netProfit');
+            const profitValue = perf.net_profit || 0;
+            netProfit.textContent = formatCurrency(profitValue);
+            netProfit.className = 'big-metric-value ' + (profitValue >= 0 ? 'positive' : 'negative');
+
+            document.getElementById('winRate').textContent = 
+                ((perf.win_rate || 0) * 100).toFixed(1) + '%';
+            document.getElementById('totalTrades').textContent = perf.total_trades || 0;
+            document.getElementById('uptime').textContent = formatTime(perf.uptime_seconds || 0);
+
+            // Update current market
+            const market = data.current_market;
+            if (market && market.question) {
+                document.getElementById('currentMarket').innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Question</span>
+                        <span class="metric-value" style="font-size: 0.9rem;">${market.question}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Ends</span>
+                        <span class="metric-value" style="font-size: 0.9rem;">${formatTimestamp(market.end_time)}</span>
+                    </div>
+                `;
+            }
+
+            // Update spread
+            const spread = data.current_spread;
+            if (spread) {
+                document.getElementById('currentSpread').innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Spread</span>
+                        <span class="metric-value">${formatCurrency(spread.spread || 0)}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Profit Potential</span>
+                        <span class="metric-value positive">${formatCurrency(spread.profit_potential || 0)}</span>
+                    </div>
+                `;
+            }
+
+            // Update open positions
+            const positions = data.open_positions || [];
+            document.getElementById('positionCount').textContent = positions.length;
+            const positionsEl = document.getElementById('openPositions');
+            if (positions.length === 0) {
+                positionsEl.innerHTML = '<div class="loading">No open positions</div>';
+            } else {
+                positionsEl.innerHTML = positions.map(pos => `
+                    <div class="position-item">
+                        <div><strong>Position ${pos.position_id || 'Unknown'}</strong></div>
+                        <div class="position-meta">
+                            <span>Spread: ${formatCurrency(pos.signal?.spread || 0)}</span>
+                            <span>Opened: ${formatTimestamp(pos.opened_at)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Update recent trades
+            const trades = data.recent_trades || [];
+            const tradesEl = document.getElementById('recentTrades');
+            if (trades.length === 0) {
+                tradesEl.innerHTML = '<div class="loading">No trades yet</div>';
+            } else {
+                tradesEl.innerHTML = trades.map(trade => `
+                    <div class="trade-item trade-${trade.result}">
+                        <div>
+                            <strong>${trade.result === 'win' ? '✅' : '❌'} ${trade.position_id}</strong><br>
+                            <small>${formatTimestamp(trade.closed_at)}</small>
+                        </div>
+                        <div class="metric-value ${trade.profit >= 0 ? 'positive' : 'negative'}">
+                            ${formatCurrency(trade.profit)}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Update errors
+            const errors = data.errors || [];
+            const errorsEl = document.getElementById('recentErrors');
+            if (errors.length === 0) {
+                errorsEl.innerHTML = '<div class="loading">No errors</div>';
+            } else {
+                errorsEl.innerHTML = errors.map(err => `
+                    <div class="error-item">
+                        ${err.message}
+                        <div class="error-time">${formatTimestamp(err.timestamp)}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Start auto-refresh
+        fetchData();
+        refreshInterval = setInterval(fetchData, 3000); // Update every 3 seconds
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(refreshInterval);
+        });
+    </script>
+</body>
+</html>

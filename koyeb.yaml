@@ -1,0 +1,39 @@
+# Koyeb deployment configuration
+app:
+  name: polymarket-trading-bot
+  
+services:
+  - name: trading-bot
+    type: web
+    instance_type: nano  # Use 'small' for better performance
+    regions:
+      - was  # Washington DC (closest to Polymarket servers)
+    ports:
+      - port: 5000
+        protocol: http
+    env:
+      # Bot will run in paper trading mode by default
+      # Set DRY_RUN=false in Koyeb dashboard for live trading
+      - name: PYTHONUNBUFFERED
+        value: "1"
+      - name: LOOP_SLEEP_INTERVAL
+        value: "5"
+    # Environment secrets (set these in Koyeb dashboard):
+    # - POLYGON_PRIVATE_KEY (required)
+    # - BINANCE_API_KEY (optional, for latency arbitrage)
+    # - BINANCE_API_SECRET (optional, for latency arbitrage)
+    
+    build:
+      type: docker
+      dockerfile: Dockerfile
+    
+    health_checks:
+      - type: http
+        path: /
+        port: 5000
+        initial_delay: 10
+        interval: 60
+    
+    scaling:
+      min: 1
+      max: 1  # Bot should run as single instance

@@ -1,0 +1,15 @@
+py-clob-client>=0.20.0
+python-dotenv>=1.0.0
+pandas>=2.0.0
+requests>=2.31.0
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Strategy 2: Latency Arbitrage (Binance Integration)
+python-binance>=1.0.17
+websocket-client>=1.6.0
+
+# Strategy 4: ML Pattern Recognition
+scikit-learn>=1.3.0
+numpy>=1.24.0
+joblib>=1.3.0
