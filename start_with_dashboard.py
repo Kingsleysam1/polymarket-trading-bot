@@ -12,7 +12,7 @@ print("""
 
 Starting bot with web dashboard enabled...
 
-Dashboard will be available at: http://0.0.0.0:5000
+Dashboard will be available at: http://0.0.0.0:8000
 
 Press Ctrl+C to stop the bot and dashboard.
 """)
@@ -20,6 +20,6 @@ Press Ctrl+C to stop the bot and dashboard.
 try:
     subprocess.run([
         sys.executable, "bot.py", "--dry-run", "--dashboard"
-    ])
+    ], env={**os.environ, "PORT": "8000"})
 except KeyboardInterrupt:
     print("\n\n✅ Bot stopped!")

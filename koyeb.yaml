@@ -9,7 +9,7 @@ services:
     regions:
       - was  # Washington DC (closest to Polymarket servers)
     ports:
-      - port: 5000
+      - port: 8000
         protocol: http
     env:
       # Bot will run in paper trading mode by default
@@ -18,6 +18,8 @@ services:
         value: "1"
       - name: LOOP_SLEEP_INTERVAL
         value: "5"
+      - name: PORT
+        value: "8000"
     # Environment secrets (set these in Koyeb dashboard):
     # - POLYGON_PRIVATE_KEY (required)
     # - BINANCE_API_KEY (optional, for latency arbitrage)
@@ -30,7 +32,7 @@ services:
     health_checks:
       - type: http
         path: /
-        port: 5000
+        port: 8000
         initial_delay: 10
         interval: 60
     

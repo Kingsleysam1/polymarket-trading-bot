@@ -23,7 +23,7 @@ COPY . .
 RUN mkdir -p data/historical data/models
 
 # Expose dashboard port
-EXPOSE 5000
+EXPOSE 8000
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
