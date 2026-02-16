@@ -49,7 +49,7 @@ def get_trades():
     state = bot_state.get_state()
     return jsonify(state.get("recent_trades", []))
 
-def run_dashboard(host='127.0.0.1', port=5000):
+def run_dashboard(host='0.0.0.0', port=5000):
     """Run the dashboard server"""
     print(f"🌐 Dashboard starting at http://{host}:{port}")
     print(f"📊 Open your browser to view the monitoring dashboard")

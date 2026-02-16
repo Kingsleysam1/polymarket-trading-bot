@@ -99,7 +99,7 @@ class MultiStrategyBot:
         logger.info(f"  Order Size: ${config.ORDER_SIZE_USD}")
         logger.info(f"  Max Positions: {config.MAX_OPEN_POSITIONS}")
         if self.enable_dashboard:
-            logger.info(f"  Dashboard: http://127.0.0.1:5000")
+            logger.info(f"  Dashboard: http://0.0.0.0:5000")
         logger.info("=" * 70)
         
         if self.dry_run or config.PAPER_TRADING_ENABLED:
@@ -235,7 +235,7 @@ def main():
     parser.add_argument(
         "--dashboard",
         action="store_true",
-        help="Enable web dashboard at http://127.0.0.1:5000"
+        help="Enable web dashboard at http://0.0.0.0:5000"
     )
     parser.add_argument(
         "--capital",
