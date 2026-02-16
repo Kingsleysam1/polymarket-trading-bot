@@ -124,11 +124,11 @@ PAPER_TRADING_FILL_RATE = 0.15  # 15% chance per cycle if price is competitive
 # MULTI-STRATEGY CONFIGURATION
 # ============================================================================
 
-# Strategy Enablement (turn strategies on/off)
-STRATEGY_MAKER_ENABLED = True
-STRATEGY_PROBABILITY_ENABLED = True
-STRATEGY_LATENCY_ENABLED = False  # Requires Binance setup
-STRATEGY_ML_ENABLED = False  # Requires trained model
+# Strategy Enablement
+STRATEGY_MAKER_ENABLED = False  # Legacy maker market making strategy (needs adapter)
+STRATEGY_PROBABILITY_ENABLED = True  # Probability scalping strategy
+STRATEGY_LATENCY_ENABLED = False  # Latency arbitrage (requires Binance)
+STRATEGY_ML_ENABLED = False  # ML pattern recognition (requires trained model)
 
 # Capital Allocation (must sum to 1.0)
 CAPITAL_ALLOCATION = {
