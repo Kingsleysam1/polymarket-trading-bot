@@ -5,6 +5,10 @@ requests>=2.31.0
 flask>=3.0.0
 flask-cors>=4.0.0
 
+# Phase 1: Async Infrastructure
+websockets>=11.0
+aiohttp>=3.9.0
+
 # Strategy 2: Latency Arbitrage (Binance Integration)
 python-binance>=1.0.17
 websocket-client>=1.6.0
